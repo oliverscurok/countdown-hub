@@ -10,9 +10,15 @@
 		formatTargetDate,
 		progress as progressOf
 	} from '$lib/time.js';
-	import { hasCelebrated, markCelebrated, removeEvent } from '$lib/store.svelte.js';
+	import { removeEvent } from '$lib/store.svelte.js';
 
-	let { event, onEdit, highlight = false } = $props();
+	let {
+		event,
+		onEdit,
+		highlight = false,
+		fresh = false,
+		freshDelay = 0
+	} = $props();
 
 	const targetMs = $derived(new Date(event.targetDate).getTime());
 	const parts = $derived(diffParts(targetMs, now()));
@@ -20,52 +26,6 @@
 	const acc = $derived(accent(event.accent));
 	const ringProgress = $derived(progressOf(event.createdAt, event.targetDate, now()));
 	const isPast = $derived(state === 'past');
-
-	// One-shot flag to distinguish first effect run from later transitions
-	let armed = false;
-
-	$effect(() => {
-		const past = isPast;
-		if (!armed) {
-			armed = true;
-			if (past && !hasCelebrated(event.id)) {
-				// Already past at mount — mark silently
-				markCelebrated(event.id);
-			}
-			return;
-		}
-		if (!past) return;
-		if (hasCelebrated(event.id)) return;
-
-		// Crossed zero while we were watching — fire confetti once
-		(async () => {
-			try {
-				const m = await import('canvas-confetti');
-				const fn = m.default;
-				const palette = acc.confetti;
-				fn({
-					particleCount: 90,
-					spread: 80,
-					origin: { y: 0.6 },
-					colors: palette,
-					ticks: 200
-				});
-				setTimeout(() => {
-					fn({
-						particleCount: 60,
-						spread: 100,
-						startVelocity: 35,
-						origin: { y: 0.65 },
-						colors: palette
-					});
-				}, 220);
-				vibrate([20, 40, 20]);
-			} catch {
-				/* package missing — skip */
-			}
-			markCelebrated(event.id);
-		})();
-	});
 
 	function vibrate(pattern) {
 		if (typeof navigator !== 'undefined' && navigator.vibrate) {
@@ -110,24 +70,30 @@
 	const baseClasses =
 		'group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl transition-all duration-200 ease-out hover:scale-[1.02]';
 
+	// While `fresh`, the celebrate-glow keyframes drive transform / box-shadow
+	// / filter / opacity / border-color, so we suppress the static past styling.
 	const stateClasses = $derived(
-		{
-			far: 'opacity-90',
-			near: '',
-			soon: 'pulse-soft',
-			imminent: 'urgent-ring pulse-soft',
-			past: 'grayscale-[80%] opacity-80'
-		}[state] ?? ''
+		fresh
+			? ''
+			: ({
+					far: 'opacity-90',
+					near: '',
+					soon: 'pulse-soft',
+					imminent: 'urgent-ring pulse-soft',
+					past: 'grayscale-[80%] opacity-80'
+				}[state] ?? '')
 	);
 
 	const glowClass = $derived(state === 'soon' || state === 'imminent' ? acc.glowStrong : acc.glow);
 
-	const cssVars = $derived(`--accent-strong: ${acc.hexStrong};`);
+	const cssVars = $derived(
+		`--accent-strong: ${acc.hexStrong}; --accent-color: ${acc.hex}; --accent-color-30: ${acc.hex30}; --celebrate-delay: ${freshDelay}ms;`
+	);
 </script>
 
 <article
 	id={`event-${event.id}`}
-	class="{baseClasses} {stateClasses} {isPast ? '' : glowClass} {highlight ? 'card-highlight' : ''}"
+	class="{baseClasses} {stateClasses} {!isPast && !fresh ? glowClass : ''} {fresh ? 'freshly-celebrated' : ''} {highlight ? 'card-highlight' : ''}"
 	style={cssVars}
 	in:fly={{ y: 12, duration: 220, easing: cubicOut }}
 	out:scale={{ start: 0.92, duration: 200, easing: cubicIn }}

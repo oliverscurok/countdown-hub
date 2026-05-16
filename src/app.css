@@ -154,6 +154,102 @@ body {
 	}
 }
 
+/* "Past Glow" — first-observed celebration. Three phases over 2.5s:
+   0–800ms bright glow + slight scale; 800–1800ms two pulses 1.03↔1.05;
+   1800–2500ms fade into the settled grayscale Celebrated state. */
+.freshly-celebrated {
+	filter: none !important;
+	opacity: 1 !important;
+	animation: celebrate-glow 2.5s cubic-bezier(0.4, 0, 0.2, 1)
+		var(--celebrate-delay, 0ms) both;
+	will-change: transform, box-shadow, filter, opacity;
+}
+
+@keyframes celebrate-glow {
+	0% {
+		transform: scale(1);
+		box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+		border-color: rgba(255, 255, 255, 0.1);
+		filter: none;
+		opacity: 1;
+	}
+	16% {
+		transform: scale(1.03);
+		box-shadow:
+			0 0 40px var(--accent-color, #a78bfa),
+			0 0 80px var(--accent-color-30, rgba(139, 92, 246, 0.3));
+		border-color: var(--accent-strong, rgba(139, 92, 246, 0.95));
+	}
+	32% {
+		transform: scale(1.03);
+		box-shadow:
+			0 0 40px var(--accent-color, #a78bfa),
+			0 0 80px var(--accent-color-30, rgba(139, 92, 246, 0.3));
+		border-color: var(--accent-strong, rgba(139, 92, 246, 0.95));
+	}
+	50% {
+		transform: scale(1.05);
+		box-shadow:
+			0 0 50px var(--accent-color, #a78bfa),
+			0 0 90px var(--accent-color-30, rgba(139, 92, 246, 0.3));
+		border-color: var(--accent-strong, rgba(139, 92, 246, 0.95));
+	}
+	60% {
+		transform: scale(1.03);
+		box-shadow:
+			0 0 40px var(--accent-color, #a78bfa),
+			0 0 80px var(--accent-color-30, rgba(139, 92, 246, 0.3));
+		border-color: var(--accent-strong, rgba(139, 92, 246, 0.95));
+	}
+	70% {
+		transform: scale(1.05);
+		box-shadow:
+			0 0 50px var(--accent-color, #a78bfa),
+			0 0 90px var(--accent-color-30, rgba(139, 92, 246, 0.3));
+		border-color: var(--accent-strong, rgba(139, 92, 246, 0.95));
+	}
+	72% {
+		transform: scale(1.05);
+		box-shadow:
+			0 0 40px var(--accent-color, #a78bfa),
+			0 0 80px var(--accent-color-30, rgba(139, 92, 246, 0.3));
+		border-color: var(--accent-strong, rgba(139, 92, 246, 0.95));
+		filter: none;
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+		border-color: rgba(255, 255, 255, 0.1);
+		filter: grayscale(80%);
+		opacity: 0.8;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.freshly-celebrated {
+		animation: celebrate-glow-reduced 1000ms cubic-bezier(0.4, 0, 0.2, 1)
+			var(--celebrate-delay, 0ms) both;
+	}
+
+	@keyframes celebrate-glow-reduced {
+		0% {
+			box-shadow:
+				0 0 32px var(--accent-color, #a78bfa),
+				0 0 64px var(--accent-color-30, rgba(139, 92, 246, 0.3));
+			border-color: var(--accent-strong, rgba(139, 92, 246, 0.95));
+			filter: none;
+			opacity: 1;
+		}
+		100% {
+			box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+			border-color: rgba(255, 255, 255, 0.1);
+			filter: grayscale(80%);
+			opacity: 0.8;
+		}
+	}
+}
+
 /* Hide scrollbar but keep functionality */
 .scrollbar-hidden::-webkit-scrollbar {
 	display: none;

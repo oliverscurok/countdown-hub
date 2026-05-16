@@ -2,32 +2,7 @@ import { browser } from '$app/environment';
 import { nanoid } from 'nanoid';
 
 const KEY = 'countdown-hub-v1';
-const CELEBRATED_KEY = 'countdown-hub-celebrated-v1';
-
-function load() {
-	if (!browser) return { events: [] };
-	try {
-		const raw = localStorage.getItem(KEY);
-		if (!raw) return { events: [] };
-		const parsed = JSON.parse(raw);
-		if (!parsed || !Array.isArray(parsed.events)) return { events: [] };
-		return { events: parsed.events.filter(isValidEvent) };
-	} catch {
-		return { events: [] };
-	}
-}
-
-function loadCelebrated() {
-	if (!browser) return new Set();
-	try {
-		const raw = localStorage.getItem(CELEBRATED_KEY);
-		if (!raw) return new Set();
-		const arr = JSON.parse(raw);
-		return new Set(Array.isArray(arr) ? arr : []);
-	} catch {
-		return new Set();
-	}
-}
+const LEGACY_CELEBRATED_KEY = 'countdown-hub-celebrated-v1';
 
 function isValidEvent(e) {
 	return (
@@ -41,8 +16,55 @@ function isValidEvent(e) {
 	);
 }
 
-const state = $state(load());
-const celebrated = $state({ ids: [...loadCelebrated()] });
+function readLegacyCelebrated() {
+	if (!browser) return new Set();
+	try {
+		const raw = localStorage.getItem(LEGACY_CELEBRATED_KEY);
+		if (!raw) return new Set();
+		const arr = JSON.parse(raw);
+		return new Set(Array.isArray(arr) ? arr : []);
+	} catch {
+		return new Set();
+	}
+}
+
+// Add `celebratedAt` (null | ISO string) to legacy events.
+// If an event is already past at first load — or appeared in the legacy
+// `countdown-hub-celebrated-v1` set — anchor it to its targetDate so the
+// glow won't fire for things the user has already seen.
+function migrate(rawEvents) {
+	const now = Date.now();
+	const legacy = readLegacyCelebrated();
+	let touched = legacy.size > 0;
+
+	const events = rawEvents.map((e) => {
+		if (Object.prototype.hasOwnProperty.call(e, 'celebratedAt')) {
+			return e;
+		}
+		touched = true;
+		const isPastAlready = new Date(e.targetDate).getTime() <= now;
+		const celebratedAt = legacy.has(e.id) || isPastAlready ? e.targetDate : null;
+		return { ...e, celebratedAt };
+	});
+
+	return { events, touched };
+}
+
+function loadRaw() {
+	if (!browser) return [];
+	try {
+		const raw = localStorage.getItem(KEY);
+		if (!raw) return [];
+		const parsed = JSON.parse(raw);
+		if (!parsed || !Array.isArray(parsed.events)) return [];
+		return parsed.events.filter(isValidEvent);
+	} catch {
+		return [];
+	}
+}
+
+const initial = migrate(loadRaw());
+const state = $state({ events: initial.events });
 
 function persist() {
 	if (!browser) return;
@@ -53,10 +75,10 @@ function persist() {
 	}
 }
 
-function persistCelebrated() {
-	if (!browser) return;
+if (browser && initial.touched) {
+	persist();
 	try {
-		localStorage.setItem(CELEBRATED_KEY, JSON.stringify(celebrated.ids));
+		localStorage.removeItem(LEGACY_CELEBRATED_KEY);
 	} catch {
 		/* ignore */
 	}
@@ -73,7 +95,8 @@ export function addEvent({ title, targetDate, emoji, accent }) {
 		targetDate,
 		emoji: emoji || '🎯',
 		accent: accent || 'violet',
-		createdAt: new Date().toISOString()
+		createdAt: new Date().toISOString(),
+		celebratedAt: null
 	};
 	state.events = [...state.events, event];
 	persist();
@@ -81,47 +104,49 @@ export function addEvent({ title, targetDate, emoji, accent }) {
 }
 
 export function updateEvent(id, patch) {
-	state.events = state.events.map((e) => (e.id === id ? { ...e, ...patch } : e));
+	state.events = state.events.map((e) => {
+		if (e.id !== id) return e;
+		const merged = { ...e, ...patch };
+		if (patch.targetDate !== undefined && patch.targetDate !== e.targetDate) {
+			const newMs = new Date(patch.targetDate).getTime();
+			if (newMs <= Date.now()) {
+				// Edited into the past — anchor to that date, suppress glow.
+				merged.celebratedAt = patch.targetDate;
+			} else {
+				// Moved back into the future — re-arm so a future transition can fire.
+				merged.celebratedAt = null;
+			}
+		}
+		return merged;
+	});
 	persist();
 }
 
 export function removeEvent(id) {
 	state.events = state.events.filter((e) => e.id !== id);
 	persist();
-	// Also clean up celebration record so re-adding triggers again
-	if (celebrated.ids.includes(id)) {
-		celebrated.ids = celebrated.ids.filter((x) => x !== id);
-		persistCelebrated();
-	}
 }
 
-export function hasCelebrated(id) {
-	return celebrated.ids.includes(id);
+export function markCelebrated(id, isoTimestamp) {
+	let changed = false;
+	state.events = state.events.map((e) => {
+		if (e.id !== id || e.celebratedAt !== null) return e;
+		changed = true;
+		return { ...e, celebratedAt: isoTimestamp };
+	});
+	if (changed) persist();
+	return changed;
 }
 
-export function markCelebrated(id) {
-	if (celebrated.ids.includes(id)) return;
-	celebrated.ids = [...celebrated.ids, id];
-	persistCelebrated();
-}
-
-// Cross-tab sync
 if (browser) {
 	window.addEventListener('storage', (e) => {
 		if (e.key === KEY && e.newValue) {
 			try {
 				const parsed = JSON.parse(e.newValue);
 				if (parsed && Array.isArray(parsed.events)) {
-					state.events = parsed.events.filter(isValidEvent);
+					const m = migrate(parsed.events.filter(isValidEvent));
+					state.events = m.events;
 				}
-			} catch {
-				/* ignore */
-			}
-		}
-		if (e.key === CELEBRATED_KEY && e.newValue) {
-			try {
-				const arr = JSON.parse(e.newValue);
-				celebrated.ids = Array.isArray(arr) ? arr : [];
 			} catch {
 				/* ignore */
 			}

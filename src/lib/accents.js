@@ -8,6 +8,7 @@ export const ACCENTS = {
 		dayBg: 'bg-rose-500/15',
 		border: 'border-rose-400/40',
 		hex: '#fb7185',
+		hex30: 'rgba(244,63,94,0.3)',
 		hexStrong: 'rgba(244,63,94,0.95)',
 		confetti: ['#fda4af', '#fb7185', '#f43f5e', '#e11d48']
 	},
@@ -20,6 +21,7 @@ export const ACCENTS = {
 		dayBg: 'bg-amber-500/15',
 		border: 'border-amber-400/40',
 		hex: '#fbbf24',
+		hex30: 'rgba(245,158,11,0.3)',
 		hexStrong: 'rgba(245,158,11,0.95)',
 		confetti: ['#fde68a', '#fbbf24', '#f59e0b', '#d97706']
 	},
@@ -32,6 +34,7 @@ export const ACCENTS = {
 		dayBg: 'bg-emerald-500/15',
 		border: 'border-emerald-400/40',
 		hex: '#34d399',
+		hex30: 'rgba(16,185,129,0.3)',
 		hexStrong: 'rgba(16,185,129,0.95)',
 		confetti: ['#a7f3d0', '#34d399', '#10b981', '#059669']
 	},
@@ -44,6 +47,7 @@ export const ACCENTS = {
 		dayBg: 'bg-sky-500/15',
 		border: 'border-sky-400/40',
 		hex: '#38bdf8',
+		hex30: 'rgba(56,189,248,0.3)',
 		hexStrong: 'rgba(56,189,248,0.95)',
 		confetti: ['#bae6fd', '#38bdf8', '#0ea5e9', '#0284c7']
 	},
@@ -56,6 +60,7 @@ export const ACCENTS = {
 		dayBg: 'bg-violet-500/15',
 		border: 'border-violet-400/40',
 		hex: '#a78bfa',
+		hex30: 'rgba(139,92,246,0.3)',
 		hexStrong: 'rgba(139,92,246,0.95)',
 		confetti: ['#ddd6fe', '#a78bfa', '#8b5cf6', '#7c3aed']
 	},
@@ -68,6 +73,7 @@ export const ACCENTS = {
 		dayBg: 'bg-fuchsia-500/15',
 		border: 'border-fuchsia-400/40',
 		hex: '#e879f9',
+		hex30: 'rgba(217,70,239,0.3)',
 		hexStrong: 'rgba(217,70,239,0.95)',
 		confetti: ['#f5d0fe', '#e879f9', '#d946ef', '#c026d3']
 	}
