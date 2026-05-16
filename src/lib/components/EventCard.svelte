@@ -176,33 +176,31 @@
 		{:else if parts.d >= 7}
 			{#key parts.d}
 				<span
-					in:fly={{ y: 8, duration: 200, easing: cubicOut }}
+					in:fade={{ duration: 140 }}
 					class="inline-block"
 				>{parts.d}d</span>
 			{/key}
 			<span class="text-white/40"> </span>
 			{#key parts.h}
 				<span
-					in:fly={{ y: 8, duration: 200, easing: cubicOut }}
+					in:fade={{ duration: 140 }}
 					class="inline-block"
 				>{parts.h}h</span>
 			{/key}
 		{:else if parts.d >= 1}
 			{#key parts.d}
-				<span in:fly={{ y: 8, duration: 200, easing: cubicOut }} class="inline-block">{parts.d}d</span>
+				<span in:fade={{ duration: 140 }} class="inline-block">{parts.d}d</span>
 			{/key}
 			<span> </span>
 			{#key parts.h}
-				<span in:fly={{ y: 8, duration: 200, easing: cubicOut }} class="inline-block">{parts.h}h</span>
+				<span in:fade={{ duration: 140 }} class="inline-block">{parts.h}h</span>
 			{/key}
 			<span> </span>
 			{#key parts.m}
-				<span in:fly={{ y: 8, duration: 200, easing: cubicOut }} class="inline-block">{parts.m}m</span>
+				<span in:fade={{ duration: 140 }} class="inline-block">{parts.m}m</span>
 			{/key}
 		{:else}
-			{#key parts.h}
-				<span in:fly={{ y: 8, duration: 200, easing: cubicOut }} class="inline-block">{pad(parts.h)}</span>
-			{/key}<span class="text-white/40">:</span>{#key parts.m}<span in:fly={{ y: 8, duration: 200, easing: cubicOut }} class="inline-block">{pad(parts.m)}</span>{/key}<span class="text-white/40">:</span>{#key parts.s}<span in:fly={{ y: 8, duration: 200, easing: cubicOut }} class="inline-block">{pad(parts.s)}</span>{/key}
+			{#key parts.h}<span in:fade={{ duration: 140 }} class="inline-block">{pad(parts.h)}</span>{/key}<span class="text-white/40">:</span>{#key parts.m}<span in:fade={{ duration: 140 }} class="inline-block">{pad(parts.m)}</span>{/key}<span class="text-white/40">:</span><span class="inline-block">{pad(parts.s)}</span>
 		{/if}
 	</div>
 
