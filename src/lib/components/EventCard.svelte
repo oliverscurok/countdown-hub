@@ -81,34 +81,13 @@
 		return String(n).padStart(2, '0');
 	}
 
-	// Tap-and-hold context menu
 	let menuOpen = $state(false);
 	let confirmingDelete = $state(false);
-	let holdTimer = null;
-	let holdStart = { x: 0, y: 0 };
 
-	function onPointerDown(e) {
-		// Don't trigger on right click / multi-touch
-		if (e.button !== undefined && e.button !== 0) return;
-		holdStart = { x: e.clientX ?? 0, y: e.clientY ?? 0 };
-		clearTimeout(holdTimer);
-		holdTimer = setTimeout(() => {
-			menuOpen = true;
-			vibrate(15);
-		}, 500);
-	}
-	function onPointerMove(e) {
-		if (!holdTimer) return;
-		const dx = (e.clientX ?? 0) - holdStart.x;
-		const dy = (e.clientY ?? 0) - holdStart.y;
-		if (dx * dx + dy * dy > 100) {
-			clearTimeout(holdTimer);
-			holdTimer = null;
-		}
-	}
-	function onPointerUp() {
-		clearTimeout(holdTimer);
-		holdTimer = null;
+	function toggleMenu(e) {
+		e?.stopPropagation();
+		menuOpen = !menuOpen;
+		if (menuOpen) vibrate(10);
 	}
 
 	function startEdit() {
@@ -126,11 +105,6 @@
 		vibrate(10);
 		removeEvent(event.id);
 		confirmingDelete = false;
-	}
-
-	function onContextMenu(e) {
-		e.preventDefault();
-		menuOpen = true;
 	}
 
 	const baseClasses =
@@ -154,18 +128,21 @@
 <article
 	class="{baseClasses} {stateClasses} {isPast ? '' : glowClass}"
 	style={cssVars}
-	onpointerdown={onPointerDown}
-	onpointermove={onPointerMove}
-	onpointerup={onPointerUp}
-	onpointercancel={onPointerUp}
-	onpointerleave={onPointerUp}
-	oncontextmenu={onContextMenu}
 	in:fly={{ y: 12, duration: 220, easing: cubicOut }}
 	out:scale={{ start: 0.92, duration: 200, easing: cubicIn }}
 >
 	<div class="flex items-start justify-between">
 		<div class="text-4xl select-none leading-none" aria-hidden="true">{event.emoji}</div>
-		<ProgressRing progress={ringProgress} color={acc.hex} />
+		<button
+			type="button"
+			onclick={toggleMenu}
+			aria-haspopup="menu"
+			aria-expanded={menuOpen}
+			aria-label="Open card menu"
+			class="relative -m-2 rounded-full p-2 transition hover:bg-white/5 active:scale-95"
+		>
+			<ProgressRing progress={ringProgress} color={acc.hex} />
+		</button>
 	</div>
 
 	<h3 class="mt-4 text-lg font-medium text-white/90 line-clamp-1">{event.title}</h3>
