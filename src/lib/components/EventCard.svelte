@@ -170,7 +170,9 @@
 
 	<h3 class="mt-4 text-lg font-medium text-white/90 line-clamp-1">{event.title}</h3>
 
-	<div class="mt-2 tabular text-6xl font-semibold tracking-tight {acc.text}">
+	<div
+		class="mt-2 tabular whitespace-nowrap text-[clamp(2.25rem,8.5vw,3.25rem)] font-semibold leading-[0.95] tracking-tight {acc.text}"
+	>
 		{#if isPast}
 			<span class="text-white/70">Celebrated 🎉</span>
 		{:else if parts.d >= 7}
