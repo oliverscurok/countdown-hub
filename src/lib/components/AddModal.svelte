@@ -5,7 +5,7 @@
 	import { addEvent, updateEvent } from '$lib/store.svelte.js';
 	import { toLocalDatetimeInput, fromLocalDatetimeInput } from '$lib/time.js';
 
-	let { open = $bindable(false), editing = null, onClose } = $props();
+	let { open = $bindable(false), editing = null, prefillIso = null, onClose } = $props();
 
 	let title = $state('');
 	let dt = $state('');
@@ -22,8 +22,8 @@
 				accentKey = editing.accent;
 			} else {
 				title = '';
-				const future = new Date(Date.now() + 7 * 86_400_000);
-				dt = toLocalDatetimeInput(future.toISOString());
+				const seedIso = prefillIso ?? new Date(Date.now() + 7 * 86_400_000).toISOString();
+				dt = toLocalDatetimeInput(seedIso);
 				emoji = '🎯';
 				accentKey = randomAccent();
 			}

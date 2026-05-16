@@ -4,12 +4,16 @@
 	import EventCard from '$lib/components/EventCard.svelte';
 	import AddModal from '$lib/components/AddModal.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import CalendarMini from '$lib/components/CalendarMini.svelte';
 	import { events } from '$lib/store.svelte.js';
 	import { now } from '$lib/tick.svelte.js';
 
 	let modalOpen = $state(false);
 	let editingEvent = $state(null);
+	let prefillIso = $state(null);
 	let pastOpen = $state(false);
+	let highlightedId = $state(null);
+	let highlightTimer = null;
 
 	const sorted = $derived(
 		[...events()].sort(
@@ -25,17 +29,44 @@
 
 	function openNew() {
 		editingEvent = null;
+		prefillIso = null;
 		modalOpen = true;
 	}
 
 	function openEdit(ev) {
 		editingEvent = ev;
+		prefillIso = null;
+		modalOpen = true;
+	}
+
+	function openWithDate(iso) {
+		editingEvent = null;
+		prefillIso = iso;
 		modalOpen = true;
 	}
 
 	function closeModal() {
 		modalOpen = false;
 		editingEvent = null;
+		prefillIso = null;
+	}
+
+	function scrollToEvent(id) {
+		// Defer until microtask so a freshly mounted card is in DOM
+		queueMicrotask(() => {
+			const el = document.getElementById(`event-${id}`);
+			if (!el) return;
+			el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			// Re-trigger animation if same id is highlighted twice in a row
+			highlightedId = null;
+			queueMicrotask(() => {
+				highlightedId = id;
+				clearTimeout(highlightTimer);
+				highlightTimer = setTimeout(() => {
+					if (highlightedId === id) highlightedId = null;
+				}, 1600);
+			});
+		});
 	}
 </script>
 
@@ -70,7 +101,7 @@
 				aria-label="Active countdowns"
 			>
 				{#each active as event (event.id)}
-					<EventCard {event} onEdit={openEdit} />
+					<EventCard {event} onEdit={openEdit} highlight={highlightedId === event.id} />
 				{/each}
 			</section>
 		{:else}
@@ -84,6 +115,10 @@
 				>+ New</button>
 			</section>
 		{/if}
+
+		<div class="mt-8">
+			<CalendarMini onScrollToEvent={scrollToEvent} onAddOnDate={openWithDate} />
+		</div>
 
 		{#if past.length > 0}
 			<section class="mt-12" aria-label="Past countdowns">
@@ -114,7 +149,7 @@
 						transition:slide={{ duration: 240, easing: cubicOut }}
 					>
 						{#each past as event (event.id)}
-							<EventCard {event} onEdit={openEdit} />
+							<EventCard {event} onEdit={openEdit} highlight={highlightedId === event.id} />
 						{/each}
 					</div>
 				{/if}
@@ -123,4 +158,4 @@
 	{/if}
 </main>
 
-<AddModal bind:open={modalOpen} editing={editingEvent} onClose={closeModal} />
+<AddModal bind:open={modalOpen} editing={editingEvent} {prefillIso} onClose={closeModal} />

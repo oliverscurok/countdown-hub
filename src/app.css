@@ -131,6 +131,29 @@ body {
 	}
 }
 
+/* One-shot highlight pulse when a card is jumped-to from the calendar */
+.card-highlight {
+	animation: card-highlight 1.5s ease-out;
+}
+
+@keyframes card-highlight {
+	0% {
+		box-shadow:
+			0 0 0 0 rgba(255, 255, 255, 0.5),
+			0 0 0 0 rgba(255, 255, 255, 0);
+	}
+	30% {
+		box-shadow:
+			0 0 0 6px rgba(255, 255, 255, 0.18),
+			0 0 0 12px rgba(255, 255, 255, 0.06);
+	}
+	100% {
+		box-shadow:
+			0 0 0 14px rgba(255, 255, 255, 0),
+			0 0 0 20px rgba(255, 255, 255, 0);
+	}
+}
+
 /* Hide scrollbar but keep functionality */
 .scrollbar-hidden::-webkit-scrollbar {
 	display: none;

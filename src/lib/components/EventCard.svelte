@@ -12,7 +12,7 @@
 	} from '$lib/time.js';
 	import { hasCelebrated, markCelebrated, removeEvent } from '$lib/store.svelte.js';
 
-	let { event, onEdit } = $props();
+	let { event, onEdit, highlight = false } = $props();
 
 	const targetMs = $derived(new Date(event.targetDate).getTime());
 	const parts = $derived(diffParts(targetMs, now()));
@@ -126,7 +126,8 @@
 </script>
 
 <article
-	class="{baseClasses} {stateClasses} {isPast ? '' : glowClass}"
+	id={`event-${event.id}`}
+	class="{baseClasses} {stateClasses} {isPast ? '' : glowClass} {highlight ? 'card-highlight' : ''}"
 	style={cssVars}
 	in:fly={{ y: 12, duration: 220, easing: cubicOut }}
 	out:scale={{ start: 0.92, duration: 200, easing: cubicIn }}
