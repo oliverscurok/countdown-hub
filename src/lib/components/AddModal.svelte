@@ -1,6 +1,7 @@
 <script>
 	import { fly, fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import { browser } from '$app/environment';
 	import { ACCENT_KEYS, accent } from '$lib/accents.js';
 	import { addEvent, updateEvent } from '$lib/store.svelte.js';
 	import { toLocalDatetimeInput, fromLocalDatetimeInput } from '$lib/time.js';
@@ -12,6 +13,30 @@
 	let emoji = $state('🎯');
 	let accentKey = $state('violet');
 	let error = $state('');
+
+	// Visual-viewport tracking so the sheet lifts above the on-screen keyboard
+	// on iOS (where layout-viewport `bottom: 0` would otherwise sit behind it).
+	let keyboardInset = $state(0);
+	let visualHeight = $state(0);
+
+	$effect(() => {
+		if (!open || !browser) return;
+		const vv = window.visualViewport;
+		if (!vv) return;
+
+		const update = () => {
+			visualHeight = vv.height;
+			const inset = window.innerHeight - vv.height - vv.offsetTop;
+			keyboardInset = Math.max(0, inset);
+		};
+		update();
+		vv.addEventListener('resize', update);
+		vv.addEventListener('scroll', update);
+		return () => {
+			vv.removeEventListener('resize', update);
+			vv.removeEventListener('scroll', update);
+		};
+	});
 
 	$effect(() => {
 		if (open) {
@@ -28,7 +53,6 @@
 				accentKey = randomAccent();
 			}
 			error = '';
-			// Focus title input
 			queueMicrotask(() => {
 				titleInput?.focus();
 			});
@@ -101,8 +125,8 @@
 		role="dialog"
 		aria-modal="true"
 		aria-label={editing ? 'Edit countdown' : 'New countdown'}
-		class="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-xl rounded-t-3xl border border-white/10 bg-neutral-950/90 p-6 backdrop-blur-2xl shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.6)] sm:bottom-6 sm:rounded-3xl"
-		style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));"
+		class="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-xl overflow-y-auto rounded-t-3xl border border-white/10 bg-neutral-950/90 p-6 backdrop-blur-2xl shadow-[0_-30px_80px_-20px_rgba(0,0,0,0.6)] sm:bottom-6 sm:rounded-3xl"
+		style="{keyboardInset > 0 ? `bottom: ${keyboardInset}px;` : ''} padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); max-height: {visualHeight > 0 ? `${Math.max(visualHeight - 24, 240)}px` : '92dvh'}; transition: bottom 240ms cubic-bezier(0.4, 0, 0.2, 1);"
 		in:fly={{ y: 320, duration: 280, easing: cubicOut }}
 		out:fly={{ y: 320, duration: 220, easing: cubicOut }}
 	>
