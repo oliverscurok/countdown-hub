@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	color-scheme: dark;
+	font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@supports (font-variation-settings: normal) {
+	:root {
+		font-family: 'Inter var', 'Inter', ui-sans-serif, system-ui, sans-serif;
+	}
+}
+
+html,
+body {
+	min-height: 100dvh;
+	background: #0a0a0a;
+}
+
+body {
+	overscroll-behavior-y: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.tabular {
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: 'tnum';
+}
+
+/* Aurora animated mesh gradient */
+.aurora {
+	position: fixed;
+	inset: -10%;
+	z-index: 0;
+	pointer-events: none;
+	filter: blur(60px) saturate(140%);
+	opacity: 0.85;
+	background-color: #07070b;
+	background-image:
+		radial-gradient(40% 35% at 20% 25%, rgba(99, 102, 241, 0.55), transparent 70%),
+		radial-gradient(35% 30% at 80% 15%, rgba(168, 85, 247, 0.45), transparent 70%),
+		radial-gradient(45% 40% at 25% 85%, rgba(16, 185, 129, 0.35), transparent 70%),
+		radial-gradient(40% 35% at 80% 80%, rgba(56, 189, 248, 0.4), transparent 70%);
+	background-repeat: no-repeat;
+	background-size:
+		100% 100%,
+		100% 100%,
+		100% 100%,
+		100% 100%;
+	animation: aurora-drift 30s ease-in-out infinite;
+}
+
+@keyframes aurora-drift {
+	0%,
+	100% {
+		background-position:
+			0% 0%,
+			100% 0%,
+			0% 100%,
+			100% 100%;
+	}
+	50% {
+		background-position:
+			20% 30%,
+			80% 20%,
+			30% 80%,
+			70% 60%;
+	}
+}
+
+/* Soft grain to break up gradient banding */
+.aurora::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image: radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+	background-size: 3px 3px;
+	mix-blend-mode: overlay;
+	opacity: 0.4;
+}
+
+/* Conic urgent border (< 24h) */
+.urgent-ring {
+	position: relative;
+	isolation: isolate;
+}
+
+.urgent-ring::before {
+	content: '';
+	position: absolute;
+	inset: -1px;
+	border-radius: inherit;
+	padding: 1px;
+	background: conic-gradient(
+		from 0deg,
+		var(--accent-strong, rgba(244, 63, 94, 0.9)),
+		transparent 30%,
+		var(--accent-strong, rgba(244, 63, 94, 0.9)) 60%,
+		transparent 90%,
+		var(--accent-strong, rgba(244, 63, 94, 0.9))
+	);
+	-webkit-mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	-webkit-mask-composite: xor;
+	mask-composite: exclude;
+	animation: spin-slow 4s linear infinite;
+	z-index: -1;
+	pointer-events: none;
+}
+
+@keyframes spin-slow {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.pulse-soft {
+	animation: pulse-soft 3s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.005);
+	}
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hidden::-webkit-scrollbar {
+	display: none;
+}
+.scrollbar-hidden {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+/* Native datetime-local color tweak */
+input[type='datetime-local']::-webkit-calendar-picker-indicator {
+	filter: invert(1) opacity(0.6);
+	cursor: pointer;
+}
+
+/* Reduce motion respect */
+@media (prefers-reduced-motion: reduce) {
+	.aurora,
+	.pulse-soft,
+	.urgent-ring::before {
+		animation: none !important;
+	}
+}
